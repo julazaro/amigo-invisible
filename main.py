@@ -12,19 +12,29 @@ REDIS_URL    = os.getenv("REDIS_URL")
 DATA_FILE    = Path(__file__).parent / "data.json"
 PARTICIPANTS = ["Agus","Cin","Darka","Eri","Gabi","Juli","Kari","Lali","Maru","Tati","Vikz"]
 
-# Redis opcional — si hay REDIS_URL lo usa, si no guarda en data.json
+# Conexión TCP a Redis (Railway/cualquier Redis estándar)
 r = None
 if REDIS_URL:
     import redis as _redis
-    r = _redis.from_url(REDIS_URL, decode_responses=True)
+    try:
+        r = _redis.from_url(REDIS_URL, decode_responses=True)
+        r.ping()
+        print("✓ Redis conectado")
+    except Exception as e:
+        print(f"✗ Error al conectar Redis: {e}")
+        r = None
 
 def default_data():
     return {"drawDone": False, "assignments": {}, "codes": {}, "clues": {}}
 
 def load():
     if r:
-        raw = r.get("amigo-data")
-        return json.loads(raw) if raw else default_data()
+        try:
+            raw = r.get("amigo-data")
+            return json.loads(raw) if raw else default_data()
+        except Exception as e:
+            print(f"Error leyendo Redis: {e}")
+            return default_data()
     try:
         return json.loads(DATA_FILE.read_text(encoding="utf-8"))
     except Exception:
@@ -32,7 +42,10 @@ def load():
 
 def save(data):
     if r:
-        r.set("amigo-data", json.dumps(data))
+        try:
+            r.set("amigo-data", json.dumps(data))
+        except Exception as e:
+            print(f"Error guardando en Redis: {e}")
         return
     DATA_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
@@ -51,7 +64,8 @@ class DrawReq(BaseModel):
     adminCode: str
 
 class ClueReq(BaseModel):
-    recipient: str
+    senderName: str
+    senderCode: str
     text: str
 
 class SobreReq(BaseModel):
@@ -81,21 +95,41 @@ def draw(req: DrawReq):
     save(d)
     return {"ok": True}
 
+# Verifica nombre + código y devuelve a quién le tocó (sin efectos secundarios)
+@app.get("/api/verify/{name}")
+def verify(name: str, code: str):
+    if name not in PARTICIPANTS:
+        return {"error": "invalid_name"}
+    if not code.isdigit() or len(code) != 4:
+        return {"error": "invalid_code_format"}
+    d = load()
+    if not d["drawDone"]:
+        return {"error": "no_draw"}
+    if name not in d["codes"] or d["codes"][name] != code:
+        return {"error": "wrong_code"}
+    return {"ok": True, "assignment": d["assignments"][name]}
+
+# Enviar pista: el remitente se identifica y la pista va a su amigo automáticamente
 @app.post("/api/clue")
 def clue(req: ClueReq):
-    if not req.recipient or not req.text:
-        return {"error": "missing_fields"}
-    if req.recipient not in PARTICIPANTS:
-        return {"error": "invalid_recipient"}
+    if req.senderName not in PARTICIPANTS:
+        return {"error": "invalid_name"}
+    if not req.senderCode.isdigit() or len(req.senderCode) != 4:
+        return {"error": "invalid_code_format"}
     if len(req.text.strip()) < 2:
         return {"error": "too_short"}
     d = load()
+    if not d["drawDone"]:
+        return {"error": "no_draw"}
+    if req.senderName not in d["codes"] or d["codes"][req.senderName] != req.senderCode:
+        return {"error": "wrong_code"}
+    recipient = d["assignments"][req.senderName]
     ts = datetime.now().strftime("%d/%m %H:%M")
-    if req.recipient not in d["clues"]:
-        d["clues"][req.recipient] = []
-    d["clues"][req.recipient].append({"text": req.text.strip()[:500], "ts": ts})
+    if recipient not in d["clues"]:
+        d["clues"][recipient] = []
+    d["clues"][recipient].append({"text": req.text.strip()[:500], "ts": ts})
     save(d)
-    return {"ok": True}
+    return {"ok": True, "recipient": recipient}
 
 @app.post("/api/sobre")
 def sobre(req: SobreReq):

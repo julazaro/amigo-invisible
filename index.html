@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Amigo Invisible 🎁</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Nunito:wght@400;600;700&display=swap">
+<style>
+:root {
+  --bg: #F8F6FF; --surface: #FFFFFF; --fg: #1A1228; --fg2: #6B5E7E;
+  --accent: #7C3AED; --accent-t: #EDE9FE; --accent-tx: #6D28D9;
+  --gold: #D97706; --gold-t: #FEF3C7; --gold-b: #FDE68A;
+  --border: #E4DCFA; --r: 14px;
+  --ok-bg: #D1FAE5; --ok-fg: #064E3B;
+  --err-bg: #FEE2E2; --err-fg: #991B1B;
+  --shadow: 0 1px 3px rgba(124,58,237,.07), 0 4px 20px rgba(124,58,237,.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F0C1A; --surface: #1C1630; --fg: #F0EBFF; --fg2: #A598BE;
+    --accent: #9F6EFF; --accent-t: #2D1F5E; --accent-tx: #B98CFF;
+    --gold: #FBBF24; --gold-t: #292000; --gold-b: #3D2F00;
+    --border: #2E2450; color-scheme: dark;
+    --ok-bg: #052E16; --ok-fg: #86EFAC; --err-bg: #450A0A; --err-fg: #FCA5A5;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F0C1A; --surface: #1C1630; --fg: #F0EBFF; --fg2: #A598BE;
+  --accent: #9F6EFF; --accent-t: #2D1F5E; --accent-tx: #B98CFF;
+  --gold: #FBBF24; --gold-t: #292000; --gold-b: #3D2F00;
+  --border: #2E2450; color-scheme: dark;
+  --ok-bg: #052E16; --ok-fg: #86EFAC; --err-bg: #450A0A; --err-fg: #FCA5A5;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh;
+  padding: 0 max(16px, env(safe-area-inset-left,0px));
+  padding-right: max(16px, env(safe-area-inset-right,0px));
+}
+h1,h2,h3 { font-family: 'Syne', sans-serif; text-wrap: balance; }
+.app { max-width: 500px; margin: 0 auto; padding-block: 40px 60px; }
+
+/* Cards & layout */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 28px; box-shadow: var(--shadow); }
+.card + .card { margin-top: 16px; }
+
+/* Buttons */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 14px 20px; border-radius: 10px;
+  font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 700;
+  cursor: pointer; border: none; transition: all .15s;
+}
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn + .btn { margin-top: 10px; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--accent-tx); }
+.btn-ghost { background: transparent; color: var(--fg2); border: 1.5px solid var(--border); font-size: .9rem; padding: 10px 16px; }
+.btn-ghost:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+
+/* Form */
+label { display: block; font-size: .8rem; font-weight: 700; color: var(--fg2); margin-bottom: 6px; letter-spacing: .04em; text-transform: uppercase; }
+input, select, textarea {
+  width: 100%; padding: 12px 14px; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--bg); color: var(--fg);
+  font-family: 'Nunito', sans-serif; font-size: 1rem; transition: border-color .15s; appearance: none;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+textarea { resize: vertical; min-height: 90px; }
+.field { margin-bottom: 18px; }
+.code-input { font-size: 1.5rem; letter-spacing: .3em; text-align: center; font-weight: 700; font-family: 'Syne', sans-serif; }
+
+/* Status */
+.msg { padding: 12px 16px; border-radius: 10px; font-weight: 600; font-size: .9rem; margin-top: 14px; }
+.msg-ok  { background: var(--ok-bg);  color: var(--ok-fg); }
+.msg-err { background: var(--err-bg); color: var(--err-fg); }
+
+/* Home */
+.home-hero { text-align: center; padding: 48px 0 36px; }
+.home-hero .emoji { font-size: 4rem; display: block; margin-bottom: 16px; }
+.home-hero h1 { font-size: 2.4rem; font-weight: 800; }
+.home-hero p { color: var(--fg2); margin-top: 10px; font-size: 1rem; }
+.admin-link { text-align: center; margin-top: 20px; }
+.admin-link button { background: none; border: none; color: var(--fg2); font-size: .8rem; cursor: pointer; text-decoration: underline; font-family: inherit; }
+.admin-link button:hover { color: var(--accent); }
+
+/* Login */
+.login-header { text-align: center; margin-bottom: 28px; }
+.login-header h2 { font-size: 1.6rem; font-weight: 800; }
+.login-header p { color: var(--fg2); font-size: .9rem; margin-top: 6px; }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; color: var(--fg2); font-size: .875rem; font-weight: 600; background: none; border: none; cursor: pointer; padding: 4px 0; margin-bottom: 24px; }
+.back-btn:hover { color: var(--accent); }
+
+/* Dashboard */
+.dash-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.dash-greeting { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; }
+.dash-logout { background: none; border: 1.5px solid var(--border); color: var(--fg2); font-family: 'Nunito', sans-serif; font-size: .8rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+.dash-logout:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Assignment card */
+.assignment-card {
+  background: var(--gold-t); border: 2px solid var(--gold-b);
+  border-radius: var(--r); padding: 24px; text-align: center; margin-bottom: 16px;
+}
+.assignment-card .label { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.assignment-card .name { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+
+/* Envelope animation (primera vez) */
+.sobre-wrap { text-align: center; padding: 12px 0 4px; }
+.sobre-envelope {
+  width: 110px; height: 80px; margin: 0 auto 4px;
+  background: var(--gold-t); border: 2px solid var(--gold-b); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-size: 2.8rem;
+  cursor: pointer; transition: transform .2s; box-shadow: 0 4px 16px rgba(217,119,6,.18);
+}
+.sobre-envelope:hover { transform: scale(1.06) rotate(-1deg); }
+.sobre-envelope.open { animation: openSobre .5s ease-out forwards; }
+@keyframes openSobre {
+  0%  { transform: scale(1); }
+  40% { transform: scale(1.15) rotate(2deg); }
+  100%{ transform: scale(1); }
+}
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+.fade-in { animation: fadeIn .4s ease-out; }
+
+/* Clue section */
+.section-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+.section-sub { color: var(--fg2); font-size: .8rem; margin-bottom: 14px; }
+.clue-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.clue-item { padding: 13px 15px; background: var(--accent-t); border-radius: 10px; border-left: 3px solid var(--accent); }
+.clue-text { font-size: .95rem; line-height: 1.5; }
+.clue-ts { font-size: .75rem; color: var(--fg2); margin-top: 4px; }
+.no-clues { color: var(--fg2); font-style: italic; font-size: .9rem; padding: 8px 0; text-align: center; }
+
+/* Admin */
+.summary-grid { display: grid; grid-template-columns: 1fr auto auto; gap: 0; margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.sg-head { background: var(--accent-t); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--fg2); padding: 8px 14px; }
+.sg-cell { padding: 10px 14px; font-size: .9rem; border-top: 1px solid var(--border); }
+.sg-cell:first-child { font-weight: 600; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+.dot-green { background: #10B981; }
+.dot-gray  { background: var(--border); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app" id="root"></div>
+<script>
+const PARTICIPANTS = ['Agus','Cin','Darka','Eri','Gabi','Juli','Kari','Lali','Maru','Tati','Vikz'];
+
+// Sesión en memoria (se pierde al cerrar la pestaña, que es lo que queremos)
+let session = null; // { name, code, assignment, isFirst }
+
+async function api(method, endpoint, body) {
+  try {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch('/api/' + endpoint, opts);
+    return await res.json();
+  } catch { return { error: 'network_error' }; }
+}
+
+function errText(code) {
+  const m = {
+    wrong_code:          'Código incorrecto.',
+    no_draw:             'El sorteo todavía no se hizo. Avisale a la organizadora.',
+    already_done:        'El sorteo ya estaba hecho.',
+    invalid_code_format: 'El código debe ser 4 números.',
+    too_short:           'La pista es muy corta.',
+    network_error:       'Error de conexión.',
+    missing_fields:      'Completá todos los campos.',
+  };
+  return m[code] || `Error: ${code}`;
+}
+
+const root = document.getElementById('root');
+function render(html) { root.innerHTML = html; }
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function showHome() {
+  session = null;
+  render(`
+    <div class="home-hero">
+      <span class="emoji">🎁</span>
+      <h1>Amigo Invisible</h1>
+      <p>¡Ya casi es Navidad!</p>
+    </div>
+    <div class="card">
+      <button class="btn btn-primary" style="font-size:1.1rem;padding:16px" onclick="showLogin()">
+        Ingresar ✨
+      </button>
+    </div>
+    <div class="admin-link"><button onclick="showAdmin()">Panel de administración</button></div>
+  `);
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+function showLogin() {
+  const opts = PARTICIPANTS.map(n => `<option value="${n}">${n}</option>`).join('');
+  render(`
+    <button class="back-btn" onclick="showHome()">← Volver</button>
+    <div class="login-header">
+      <h2>Hola, ¿quién sos?</h2>
+      <p>Elegí tu nombre e ingresá tu código.<br>Si es tu primera vez, el código que pongas queda como el tuyo.</p>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label for="login-name">Tu nombre</label>
+        <select id="login-name"><option value="">— Elegí —</option>${opts}</select>
+      </div>
+      <div class="field">
+        <label for="login-code">Código de 4 números</label>
+        <input id="login-code" class="code-input" type="text" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off">
+      </div>
+      <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Ingresar</button>
+      <div id="login-msg"></div>
+    </div>
+  `);
+  document.getElementById('login-code').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+}
+
+async function doLogin() {
+  const name = document.getElementById('login-name').value;
+  const code = document.getElementById('login-code').value.trim();
+  const btn  = document.getElementById('login-btn');
+  const msg  = document.getElementById('login-msg');
+  if (!name) { msg.innerHTML = '<div class="msg msg-err">Elegí tu nombre.</div>'; return; }
+  if (!/^\d{4}$/.test(code)) { msg.innerHTML = '<div class="msg msg-err">El código debe ser exactamente 4 números.</div>'; return; }
+  btn.disabled = true; btn.textContent = 'Ingresando…';
+  const r = await api('POST', 'sobre', { name, code });
+  if (!r.ok) {
+    msg.innerHTML = `<div class="msg msg-err">${errText(r.error)}</div>`;
+    btn.disabled = false; btn.textContent = 'Ingresar'; return;
+  }
+  session = { name, code, assignment: r.assignment, isFirst: r.isFirst };
+  showDashboard();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+async function showDashboard() {
+  const { name, code, assignment, isFirst } = session;
+
+  // Si es primera vez → mostrar sobre animado primero
+  if (isFirst) {
+    render(`
+      <div class="dash-header">
+        <span class="dash-greeting">Hola, ${escHtml(name)}! 👋</span>
+        <button class="dash-logout" onclick="showHome()">Salir</button>
+      </div>
+      <div class="card sobre-wrap">
+        <p style="color:var(--fg2);font-size:.9rem;margin-bottom:12px">¡Tu sobre llegó! Hacé click para abrirlo.</p>
+        <div class="sobre-envelope" id="envelope" onclick="openEnvelope()">🎁</div>
+        <p style="color:var(--fg2);font-size:.8rem;margin-top:12px">Tu código <strong>${escHtml(code)}</strong> quedó guardado.</p>
+      </div>
+    `);
+    return;
+  }
+
+  // Sesión de retorno → mostrar todo directo
+  renderFullDashboard(name, code, assignment);
+}
+
+function openEnvelope() {
+  const env = document.getElementById('envelope');
+  if (env) { env.classList.add('open'); env.onclick = null; }
+  setTimeout(() => renderFullDashboard(session.name, session.code, session.assignment), 600);
+}
+
+async function renderFullDashboard(name, code, assignment) {
+  // Cargar pistas recibidas
+  const cluesR = await api('GET', `clues/${encodeURIComponent(name)}?code=${code}`);
+  const clues = cluesR.ok ? cluesR.clues : [];
+
+  const clueHtml = clues.length
+    ? `<ul class="clue-list">${clues.map(c => `
+        <li class="clue-item">
+          <div class="clue-text">${escHtml(c.text)}</div>
+          <div class="clue-ts">${c.ts}</div>
+        </li>`).join('')}</ul>`
+    : '<p class="no-clues">Todavía no tenés pistas. ¡Ya van a llegar!</p>';
+
+  render(`
+    <div class="dash-header">
+      <span class="dash-greeting">Hola, ${escHtml(name)}! 👋</span>
+      <button class="dash-logout" onclick="showHome()">Salir</button>
+    </div>
+
+    <div class="assignment-card fade-in">
+      <div class="label">Tu amigo invisible es</div>
+      <div class="name">🎄 ${escHtml(assignment)}</div>
+    </div>
+
+    <div class="card fade-in">
+      <div class="section-title">Mandar una pista ✉️</div>
+      <div class="section-sub">Le llega a ${escHtml(assignment)} de forma anónima.</div>
+      <div class="field" style="margin-bottom:14px">
+        <textarea id="clue-text" placeholder="Escribí la pista acá..."></textarea>
+      </div>
+      <button class="btn btn-primary" id="clue-btn" onclick="sendClue()">Enviar pista</button>
+      <div id="clue-msg"></div>
+    </div>
+
+    <div class="card fade-in">
+      <div class="section-title">Tus pistas recibidas 💌</div>
+      <div class="section-sub">Las que te dejó tu amigo invisible.</div>
+      <div id="clues-list">${clueHtml}</div>
+    </div>
+  `);
+}
+
+async function sendClue() {
+  const { name, code } = session;
+  const text = document.getElementById('clue-text').value.trim();
+  const btn  = document.getElementById('clue-btn');
+  const msg  = document.getElementById('clue-msg');
+  if (!text) { msg.innerHTML = '<div class="msg msg-err">Escribí la pista.</div>'; return; }
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  const r = await api('POST', 'clue', { senderName: name, senderCode: code, text });
+  if (r.ok) {
+    msg.innerHTML = '<div class="msg msg-ok">✓ Pista enviada.</div>';
+    document.getElementById('clue-text').value = '';
+    setTimeout(() => { if (document.getElementById('clue-msg')) document.getElementById('clue-msg').innerHTML = ''; }, 3000);
+  } else {
+    msg.innerHTML = `<div class="msg msg-err">${errText(r.error)}</div>`;
+  }
+  btn.disabled = false; btn.textContent = 'Enviar pista';
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────────────────────
+function showAdmin() {
+  render(`
+    <button class="back-btn" onclick="showHome()">← Volver</button>
+    <div class="login-header">
+      <h2>Admin 🔒</h2>
+      <p>Solo para quien organiza el juego.</p>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label for="admin-code">Contraseña</label>
+        <input id="admin-code" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" onclick="adminLogin()">Ingresar</button>
+      <div id="admin-msg"></div>
+    </div>
+    <div id="admin-panel"></div>
+  `);
+  document.getElementById('admin-code').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
+}
+
+async function adminLogin() {
+  const pw  = document.getElementById('admin-code').value;
+  const msg = document.getElementById('admin-msg');
+  msg.innerHTML = '<div class="msg" style="background:var(--accent-t);color:var(--accent-tx)">Cargando…</div>';
+  const r = await api('POST', 'admin/summary', { adminCode: pw });
+  if (!r.ok) { msg.innerHTML = `<div class="msg msg-err">${errText(r.error)}</div>`; return; }
+  msg.innerHTML = '';
+  renderAdminPanel(r, pw);
+}
+
+function renderAdminPanel(data, pw) {
+  const rows = data.summary.map(s => `
+    <div class="sg-cell">${escHtml(s.name)}</div>
+    <div class="sg-cell" style="text-align:center">${s.clueCount}</div>
+    <div class="sg-cell" style="text-align:center"><span class="dot ${s.hasCode ? 'dot-green' : 'dot-gray'}"></span></div>
+  `).join('');
+  const drawSection = data.drawDone
+    ? `<div class="msg msg-ok">✓ El sorteo ya está hecho.</div>`
+    : `<button class="btn btn-primary" id="draw-btn" onclick="doDraw('${pw}')">Hacer el sorteo 🎲</button>
+       <p style="color:var(--fg2);font-size:.8rem;margin-top:8px;text-align:center">Sorteo ciego: vos no ves los resultados.</p>`;
+  document.getElementById('admin-panel').innerHTML = `
+    <div class="card" style="margin-top:16px">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:16px">Sorteo</h3>
+      ${drawSection}
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="section-title">Estado del grupo</div>
+      <div class="section-sub">Pistas recibidas e ingresos.</div>
+      <div class="summary-grid">
+        <div class="sg-head">Nombre</div>
+        <div class="sg-head" style="text-align:center">Pistas</div>
+        <div class="sg-head" style="text-align:center">Ingresó</div>
+        ${rows}
+      </div>
+    </div>
+  `;
+}
+
+async function doDraw(pw) {
+  const btn = document.getElementById('draw-btn');
+  if (!confirm('¿Segura? El sorteo no se puede deshacer.')) return;
+  btn.disabled = true; btn.textContent = 'Sorteando…';
+  const r = await api('POST', 'draw', { adminCode: pw });
+  if (r.ok) {
+    const summary = await api('POST', 'admin/summary', { adminCode: pw });
+    if (summary.ok) renderAdminPanel(summary, pw);
+  } else {
+    btn.disabled = false; btn.textContent = 'Hacer el sorteo 🎲';
+    alert(errText(r.error));
+  }
+}
+
+showHome();
+</script>
+</body>
+</html>
